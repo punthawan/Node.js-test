@@ -35,6 +35,9 @@ let redisStore = new RedisStore({
 
 const app = express();
 
+// เพิ่ม trust proxy
+app.set("trust proxy", 1); // เปิดใช้งาน trust proxy
+
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
@@ -44,7 +47,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-app.set("trust proxy", false);
 
 //? Sessions
 app.use(
@@ -61,28 +63,15 @@ app.use(
   })
 );
 
-// sessions แบบไม่ store
-// app.use(
-//   sessions({
-//     secret: "secretkey",
-//     saveUninitialized: true,
-//     resave: false,
-//   })
-// );
-
 //? PassportJS
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Cross Origin Resource Sharing
-const whitelist = [
-  "http://localhost:5173",
-];
+const whitelist = ["http://localhost:5173"];
 const corsOptions = {
   origin: (origin, callback) => {
-    // allow requests with no origin (like mobile apps or curl requests)
     if (!origin) {
-      //console.log("Postman failed to pass origin");
       return callback(null, true);
     }
 
@@ -160,7 +149,7 @@ app.use("/api/v1/activity", v1ActivityRouter);
 
 //? Products
 const productRoutes = require("./routes/v1/productRoutes");
-app.use('/api/v1/products', productRoutes); 
+app.use("/api/v1/products", productRoutes);
 
 //orders
 const orderRoutes = require("./routes/v1/orderRoutes");
@@ -173,11 +162,9 @@ app.use(function (req, res, next) {
 
 // error handler
 app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
 
-  // render the error page
   res.status(err.status || 500);
   res.render("error");
 });
